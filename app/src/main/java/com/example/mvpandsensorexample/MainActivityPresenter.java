@@ -11,7 +11,7 @@ import android.os.Bundle;
 
 import androidx.core.app.ActivityCompat;
 
-public class MainActivityPresenter {
+public class MainActivityPresenter implements Sensors.OnSensorValueChangeListener{
 
     public static final int PERMISSION_LOCATION_REQUEST_CODE = 111;
 
@@ -28,13 +28,18 @@ public class MainActivityPresenter {
                     if(bundle != null){
                         Location location = (Location) bundle.get(LocationTrackerService.KEY_LOCATION);
                         if (location != null){
-                            view.updateLocationTextView(location.toString());
+                            view.updateLocationTextView("Latitude: " + location.getLatitude()+ "\nLongitude: "+ location.getLongitude());
                         }
                     }
                 }
             }
         };
         view.registerReceiver(broadcastReceiver,new IntentFilter(LocationTrackerService.BROADCAST_ACTION));
+
+        Sensors sensors = new Sensors(view.getBaseContext());
+        sensors.setOnSensorValueChangeListener(this);
+        view.updateAccelerometerSensorName(sensors.getAccelerometerSensorName());
+        view.updateLightSensorName(sensors.getLightSensorName());
     }
     public void startLocationService(){
         if (ActivityCompat.checkSelfPermission(view.getBaseContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
@@ -49,4 +54,15 @@ public class MainActivityPresenter {
         view.stopService(new Intent(view.getBaseContext(), LocationTrackerService.class));
     }
 
+    @Override
+    public void onAccelerometerSensorValueChange(float x, float y, float z) {
+        String sensorValue = "X: " + x + "\nY: " + y + "\nZ: " + z;
+        view.updateAccelerometerSensorValue(sensorValue);
+    }
+
+    @Override
+    public void onLightSensorValueChange(float lightLevel) {
+        String sensorValue = lightLevel + " lux";
+        view.updateLightSensorValue(sensorValue);
+    }
 }
